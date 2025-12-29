@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>「精簡措施」查詢系統</title>
+    <!-- Awesome Icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" />
+    <style>
+        .element-hidden {
+            display: none !important;
+        }
+        /* Reset & Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            min-height: 100vh;
+            padding: 16px;
+            color: #1f2937;
+        }
+        /* Layout */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-height: 100vh;
+        }
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+        .header h1 {
+            color: #111827;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header .subtitle {
+            color: #6b7280;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        /* Search & Filter Section */
+        .filter-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 20px;
+        }
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .filter-label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.95rem;
+        }
+        .filter-select, .filter-input {
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+            transition: border-color 0.2s;
+        }
+        .filter-select:focus, .filter-input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        .search-container {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        .search-button, .clear-button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .search-button:hover, .clear-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+        .clear-button {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        /* Data Section */
+        .data-section {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow-y: auto;
+            max-height: calc(100vh - 320px);
+        }
+        .data-header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .data-header h2 {
+            color: #111827;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .data-header .subtitle {
+            color: #6b7280;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        .data-stats {
+            display: flex;
+            justify-content: space-around;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid #e5e7eb;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4f46e5;
+            display: block;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+        .accordion-container {
+            margin-top: 20px;
+        }
+        .year-group {
+            margin-bottom: 24px;
+            background: #f8fafc;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+        .year-header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 18px 24px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+        .year-header:hover {
+            background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+        }
+        .year-header i {
+            transition: transform 0.3s ease;
+        }
+        .year-content {
+            padding: 10px 0 0 10px;
+            display: none;
+        }
+        .department-group {
+            margin: 0;
+            border-top: 1px solid #e5e7eb;
+        }
+        .department-header {
+            background: #3b82f6;
+            color: white;
+            padding: 16px 24px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            border-radius: 10px;
+        }
+        .department-header:hover {
+            background: #2563eb;
+        }
+        .department-content {
+            padding: 10px 0 0 10px;
+            display: none;
+            background: white;
+        }
+        .measure-item {
+            border-bottom: 1px solid #f3f4f6;
+            padding: 0;
+            background: white;
+        }
+        .measure-header {
+            background: #10b981;
+            color: white;
+            padding: 14px 24px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            margin-bottom: 10px;
+            border-radius: 10px;
+        }
+        .measure-header:hover {
+            background: #059669;
+        }
+        .measure-content {
+            padding: 24px;
+            background: #f9fafb;
+            display: none;
+        }
+        .measure-description {
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .measure-description h4 {
+            color: #111827;
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        .measure-description p {
+            color: #4b5563;
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+        .benefits-section h4 {
+            color: #111827;
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        .benefit-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .benefit-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+        .benefit-type {
+            font-weight: 700;
+            color: #4f46e5;
+            margin-bottom: 12px;
+            font-size: 1rem;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #4f46e5;
+            display: inline-block;
+        }
+        .benefit-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        .benefit-list li {
+            color: #374151;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+        .benefit-list li:before {
+            content: "•";
+            color: #10b981;
+            font-size: 1.5rem;
+            position: absolute;
+            left: 0;
+            top: -2px;
+        }
+        .benefit-list li:last-child {
+            margin-bottom: 0;
+        }
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+        .no-data i {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        .no-data h3 {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+            color: #6b7280;
+        }
+        .no-data p {
+            font-size: 1.1rem;
+            color: #9ca3af;
+        }
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+        .loading-spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading h3 {
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+        }
+        .loading p {
+            color: #9ca3af;
+        }
+        /* Footer */
+        .footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9rem;
+            padding: 20px;
+            margin-top: auto;
+        }
+        /* Notification */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 3000;
+            animation: slideIn 0.3s ease-out;
+        }
+        .notification.success {
+            background-color: #10b981;
+            color: white;
+        }
+        .notification.error {
+            background-color: #ef4444;
+            color: white;
+        }
+        .notification.info {
+            background-color: #3b82f6;
+            color: white;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+                background: #4f46e5;
+            }
+            .container {
+                gap: 16px;
+            }
+            .header {
+                padding: 16px;
+                border-radius: 12px;
+            }
+            .header h1 {
+                font-size: 1.75rem;
+            }
+            .header .subtitle {
+                font-size: 0.95rem;
+            }
+            .filter-section {
+                padding: 16px;
+            }
+            .filter-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            .search-container {
+                flex-direction: column;
+            }
+            .search-button, .clear-button {
+                width: 100%;
+                justify-content: center;
+            }
+            .data-section {
+                padding: 16px;
+                max-height: none;
+            }
+            .data-header h2 {
+                font-size: 1.3rem;
+            }
+            .data-stats {
+                flex-direction: column;
+                gap: 16px;
+                padding: 16px;
+            }
+            .stat-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .stat-value {
+                font-size: 1.5rem;
+            }
+            .year-header, .department-header, .measure-header {
+                padding: 12px 16px;
+                font-size: 1rem;
+            }
+            .measure-content {
+                padding: 16px;
+            }
+            .benefits-grid {
+                grid-template-columns: 1fr;
+            }
+            .benefit-item {
+                padding: 16px;
+            }
+        }
+        /* Desktop Enhancements */
+        @media (min-width: 1200px) {
+            .data-section {
+                max-height: calc(100vh - 350px);
+            }
+        }
+        /* Smooth Transitions */
+        * {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>「精簡措施」查詢系統</h1>
+            <p class="subtitle">查閱政府部門實施的精簡措施及預期好處</p>
+        </header>
+        
+        <section class="filter-section">
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label class="filter-label">完成年度</label>
+                    <select class="filter-select" id="filter-year">
+                        <option value="">全部年度</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">負責決策局／部門</label>
+                    <select class="filter-select" id="filter-department">
+                        <option value="">全部部門</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">預期好處類型</label>
+                    <select class="filter-select" id="filter-benefit">
+                        <option value="">全部類型</option>
+                        <option value="效率">效率</option>
+                        <option value="便民度">便民度</option>
+                        <option value="透明度">透明度</option>
+                        <option value="成本效益">成本效益</option>
+                    </select>
+                </div>
+            </div>
+            <div class="search-container">
+                <input type="text" class="search-input" id="search-input" placeholder="搜尋精簡措施描述、部門名稱或好處描述...">
+                <button class="search-button" onclick="performSearch()">
+                    <i class="fas fa-search"></i> 搜尋
+                </button>
+                <button class="clear-button" onclick="clearFilters()">
+                    <i class="fas fa-redo"></i> 清除篩選
+                </button>
+            </div>
+        </section>
+        
+        <section class="data-section">
+            <div class="data-header">
+                <h2>精簡措施列表</h2>
+                <p class="subtitle">點擊年份、部門或措施查看詳細資訊</p>
+            </div>
+            <div class="data-stats">
+                <div class="stat-item">
+                    <span id="total-measures" class="stat-value">0</span>
+                    <span class="stat-label">措施總數</span>
+                </div>
+                <div class="stat-item">
+                    <span id="total-years" class="stat-value">0</span>
+                    <span class="stat-label">年度數目</span>
+                </div>
+                <div class="stat-item">
+                    <span id="total-departments" class="stat-value">0</span>
+                    <span class="stat-label">參與部門</span>
+                </div>
+                <div class="stat-item">
+                    <span id="total-benefits" class="stat-value">0</span>
+                    <span class="stat-label">好處項目</span>
+                </div>
+            </div>
+            <div class="accordion-container" id="accordion-container">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <h3>正在加載精簡措施資料...</h3>
+                    <p>請稍候</p>
+                </div>
+            </div>
+        </section>
+        
+        <footer class="footer">
+            <p>「精簡措施」查詢系統 | 資料來源: 數碼政策辦網站開放數據 | 支援桌面及流動裝置</p>
+        </footer>
+    </div>
+
+    <script>
+        const PROXY_URL = `https://cors-anywhere.herokuapp.com`;
+        // 數據源 - 精簡措施資料
+        const DATA_SOURCE_URL = 'https://www.digitalpolicy.gov.hk/open_data/sgs/sgs_tc.csv';
+        
+        // 全局變量
+        let allMeasures = [];
+        let filteredMeasures = [];
+        
+        // 初始化應用
+        document.addEventListener('DOMContentLoaded', function () {
+            loadMeasuresData();
+        });
+        
+        async function loadMeasuresData() {
+            try {
+                const container = document.getElementById('accordion-container');
+                container.innerHTML = `
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <h3>正在下載資料...</h3>
+                        <p>從數碼政策辦網站獲取最新精簡措施數據</p>
+                    </div>
+                `;
+                
+                const response = await fetch(`${PROXY_URL}/${DATA_SOURCE_URL}`);
+                
+                if (!response.ok) {
+                    alert(`請先啟用 PROXY： ${PROXY_URL}`);
+                    window.open(PROXY_URL, "_blank");
+                    return;
+                }
+                
+                const csvText = await response.text();
+                const measures = parseCSVData(csvText);
+                
+                allMeasures = measures;
+                filteredMeasures = [...allMeasures];
+                
+                // 初始化篩選器選項
+                initFilterOptions();
+                
+                // 更新統計數據
+                updateStatistics();
+                
+                // 更新顯示列表
+                updateMeasuresList();
+                
+                showNotification(`成功加載 ${allMeasures.length} 項精簡措施`, 'success');
+                
+            } catch (error) {
+                console.error('加載數據時出錯:', error);
+                document.getElementById('accordion-container').innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>加載數據時出錯</h3>
+                        <p>請檢查網絡連接後刷新頁面重試</p>
+                        <p style="font-size: 0.9rem; margin-top: 10px; color: #9ca3af;">
+                            錯誤信息: ${error.message}
+                        </p>
+                    </div>
+                `;
+                showNotification('加載數據時出錯，請稍後再試', 'error');
+            }
+        }
+        
+        function parseCSVData(csvText) {
+            const lines = csvText.split('\n');
+            const measures = [];
+            
+            // 跳過表頭（第一行）
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                // 處理CSV行，注意：有些描述中包含逗號，所以需要特殊處理
+                const columns = parseCSVLine(line);
+                
+                if (columns.length >= 4) {
+                    const year = columns[0].trim();
+                    const department = columns[1].trim();
+                    const description = columns[2].trim();
+                    const benefitsText = columns[3].trim();
+                    
+                    // 解析好處文本
+                    const benefits = parseBenefits(benefitsText);
+                    
+                    measures.push({
+                        year,
+                        department,
+                        description,
+                        benefits,
+                        rawBenefitsText: benefitsText
+                    });
+                }
+            }
+            
+            return measures;
+        }
+        
+        function parseCSVLine(line) {
+            const columns = [];
+            let currentColumn = '';
+            let insideQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                const nextChar = line[i + 1];
+                
+                if (char === '"') {
+                    if (insideQuotes && nextChar === '"') {
+                        // 轉義的引號
+                        currentColumn += '"';
+                        i++; // 跳過下一個引號
+                    } else {
+                        // 開始或結束引號
+                        insideQuotes = !insideQuotes;
+                    }
+                } else if (char === ',' && !insideQuotes) {
+                    // 列分隔符
+                    columns.push(currentColumn);
+                    currentColumn = '';
+                } else {
+                    currentColumn += char;
+                }
+            }
+            
+            // 添加最後一列
+            columns.push(currentColumn);
+            return columns;
+        }
+        
+        function parseBenefits(benefitsText) {
+            const benefits = [];
+            if (!benefitsText) return benefits;
+            
+            // 使用分號分隔不同的好處項目
+            const benefitItems = benefitsText.split('；').filter(item => item.trim());
+            
+            benefitItems.forEach(item => {
+                // 查找第一個 "- " 來分割類型和描述
+                const dashIndex = item.indexOf(' - ');
+                if (dashIndex > 0) {
+                    const type = item.substring(0, dashIndex).trim();
+                    const description = item.substring(dashIndex + 3).trim();
+                    benefits.push({ type, description });
+                } else {
+                    // 如果沒有明確的分隔符，整個項目作為描述，類型設為"其他"
+                    benefits.push({ type: '其他', description: item.trim() });
+                }
+            });
+            
+            return benefits;
+        }
+        
+        function initFilterOptions() {
+            const yearSelect = document.getElementById('filter-year');
+            const deptSelect = document.getElementById('filter-department');
+            
+            // 收集所有年份和部門
+            const years = [...new Set(allMeasures.map(m => m.year))].sort().reverse();
+            const departments = [...new Set(allMeasures.map(m => m.department))].sort();
+            
+            // 填充年份選項
+            years.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelect.appendChild(option);
+            });
+            
+            // 填充部門選項
+            departments.forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept;
+                option.textContent = dept;
+                deptSelect.appendChild(option);
+            });
+        }
+        
+        function updateStatistics() {
+            const years = [...new Set(filteredMeasures.map(m => m.year))];
+            const departments = [...new Set(filteredMeasures.map(m => m.department))];
+            const totalBenefits = filteredMeasures.reduce((sum, measure) => sum + measure.benefits.length, 0);
+            
+            document.getElementById('total-measures').textContent = filteredMeasures.length.toLocaleString();
+            document.getElementById('total-years').textContent = years.length.toLocaleString();
+            document.getElementById('total-departments').textContent = departments.length.toLocaleString();
+            document.getElementById('total-benefits').textContent = totalBenefits.toLocaleString();
+        }
+        
+        function updateMeasuresList() {
+            const container = document.getElementById('accordion-container');
+            
+            if (filteredMeasures.length === 0) {
+                container.innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-search"></i>
+                        <h3>找不到符合條件的精簡措施</h3>
+                        <p>請嘗試調整篩選條件或搜索關鍵字</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 按年份分組（降序排列）
+            const groupedByYear = {};
+            filteredMeasures.forEach(measure => {
+                if (!groupedByYear[measure.year]) {
+                    groupedByYear[measure.year] = [];
+                }
+                groupedByYear[measure.year].push(measure);
+            });
+            
+            // 按年份排序（降序）
+            const sortedYears = Object.keys(groupedByYear).sort((a, b) => {
+                // 處理 "2019-20" 這樣的格式
+                const getYearNumber = (yearStr) => {
+                    const match = yearStr.match(/(\d{4})/);
+                    return match ? parseInt(match[1]) : 0;
+                };
+                return getYearNumber(b) - getYearNumber(a);
+            });
+            
+            let accordionHTML = '';
+            
+            sortedYears.forEach((year, yearIndex) => {
+                const yearMeasures = groupedByYear[year];
+                
+                // 按部門分組
+                const groupedByDept = {};
+                yearMeasures.forEach(measure => {
+                    if (!groupedByDept[measure.department]) {
+                        groupedByDept[measure.department] = [];
+                    }
+                    groupedByDept[measure.department].push(measure);
+                });
+                
+                // 按部門名稱排序
+                const sortedDepts = Object.keys(groupedByDept).sort();
+                
+                accordionHTML += `
+                    <div class="year-group" data-year="${year}">
+                        <div class="year-header" onclick="toggleYear('${year}')">
+                            <div>
+                                <i class="fas fa-calendar-alt" style="margin-right: 10px;"></i>
+                                <span>${year}年度 (${yearMeasures.length}項措施)</span>
+                            </div>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div id="year-${year}" class="year-content">
+                `;
+                
+                sortedDepts.forEach((dept, deptIndex) => {
+                    const deptMeasures = groupedByDept[dept];
+                    
+                    accordionHTML += `
+                        <div class="department-group" data-dept="${dept}">
+                            <div class="department-header" onclick="toggleDept('${year}-${dept}')">
+                                <div>
+                                    <i class="fas fa-building" style="margin-right: 10px;"></i>
+                                    <span>${deptIndex + 1}. ${dept} (${deptMeasures.length}項)</span>
+                                </div>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div id="dept-${year}-${dept}" class="department-content">
+                    `;
+                    
+                    deptMeasures.forEach((measure, measureIndex) => {
+                        const measureId = `measure-${year}-${dept}-${measureIndex}`.replace(/[^a-zA-Z0-9-_]/g, '_');
+                        const benefitTypes = [...new Set(measure.benefits.map(b => b.type))];
+                        
+                        accordionHTML += `
+                            <div class="measure-item" id="${measureId}">
+                                <div class="measure-header" onclick="toggleMeasure('${measureId}')">
+                                    <div style="flex: 1;">
+                                        <i class="fas fa-tasks" style="margin-right: 10px;"></i>
+                                        <span style="font-weight: 500;">${measure.description.substring(0, 100)}${measure.description.length > 100 ? '...' : ''}</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="font-size: 0.85rem; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px;">
+                                            ${measure.benefits.length}項好處
+                                        </span>
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                </div>
+                                <div id="content-${measureId}" class="measure-content">
+                                    <div class="measure-description">
+                                        <h4>精簡措施描述</h4>
+                                        <p>${measure.description}</p>
+                                    </div>
+                                    <div class="benefits-section">
+                                        <h4>預期好處</h4>
+                                        <div class="benefits-grid">
+                        `;
+                        
+                        benefitTypes.forEach(type => {
+                            const typeBenefits = measure.benefits.filter(b => b.type === type);
+                            
+                            accordionHTML += `
+                                <div class="benefit-item">
+                                    <div class="benefit-type">${type}</div>
+                                    <ul class="benefit-list">
+                                        ${typeBenefits.map(benefit => 
+                                            `<li>${benefit.description}</li>`
+                                        ).join('')}
+                                    </ul>
+                                </div>
+                            `;
+                        });
+                        
+                        accordionHTML += `
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    accordionHTML += `
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                accordionHTML += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = accordionHTML;
+            
+            // 默認展開第一個年份
+            if (sortedYears.length > 0) {
+                // setTimeout(() => toggleYear(sortedYears[0]), 100);
+            }
+        }
+        
+        function toggleYear(year) {
+            const content = document.getElementById(`year-${year}`);
+            const header = content.previousElementSibling;
+            const icon = header.querySelector('.fa-chevron-down, .fa-chevron-up');
+            
+            if (content.style.display === 'none' || !content.style.display) {
+                content.style.display = 'block';
+                icon.className = 'fas fa-chevron-up';
+            } else {
+                content.style.display = 'none';
+                icon.className = 'fas fa-chevron-down';
+                
+                // 收起所有子項
+                const deptContents = content.querySelectorAll('.department-content');
+                deptContents.forEach(deptContent => {
+                    deptContent.style.display = 'none';
+                    const deptIcon = deptContent.previousElementSibling.querySelector('.fa-chevron-down, .fa-chevron-up');
+                    if (deptIcon) deptIcon.className = 'fas fa-chevron-down';
+                });
+            }
+        }
+        
+        function toggleDept(deptId) {
+            const content = document.getElementById(`dept-${deptId}`);
+            const header = content.previousElementSibling;
+            const icon = header.querySelector('.fa-chevron-down, .fa-chevron-up');
+            
+            if (content.style.display === 'none' || !content.style.display) {
+                content.style.display = 'block';
+                icon.className = 'fas fa-chevron-up';
+            } else {
+                content.style.display = 'none';
+                icon.className = 'fas fa-chevron-down';
+            }
+        }
+        
+        function toggleMeasure(measureId) {
+            const content = document.getElementById(`content-${measureId}`);
+            const header = content.previousElementSibling;
+            const icon = header.querySelector('.fa-chevron-down, .fa-chevron-up');
+            
+            if (content.style.display === 'none' || !content.style.display) {
+                content.style.display = 'block';
+                icon.className = 'fas fa-chevron-up';
+                
+                // 滾動到元素
+                content.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                content.style.display = 'none';
+                icon.className = 'fas fa-chevron-down';
+            }
+        }
+        
+        function performSearch() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const selectedYear = document.getElementById('filter-year').value;
+            const selectedDept = document.getElementById('filter-department').value;
+            const selectedBenefit = document.getElementById('filter-benefit').value;
+            
+            filteredMeasures = allMeasures.filter(measure => {
+                // 年份篩選
+                if (selectedYear && measure.year !== selectedYear) return false;
+                
+                // 部門篩選
+                if (selectedDept && measure.department !== selectedDept) return false;
+                
+                // 好處類型篩選
+                if (selectedBenefit) {
+                    const hasBenefitType = measure.benefits.some(b => b.type === selectedBenefit);
+                    if (!hasBenefitType) return false;
+                }
+                
+                // 關鍵字搜索
+                if (searchTerm) {
+                    const searchInDescription = measure.description.toLowerCase().includes(searchTerm);
+                    const searchInDept = measure.department.toLowerCase().includes(searchTerm);
+                    const searchInBenefits = measure.benefits.some(b => 
+                        b.description.toLowerCase().includes(searchTerm) || 
+                        b.type.toLowerCase().includes(searchTerm)
+                    );
+                    
+                    return searchInDescription || searchInDept || searchInBenefits;
+                }
+                
+                return true;
+            });
+            
+            updateStatistics();
+            updateMeasuresList();
+            
+            // 如果有結果且不是全部顯示，顯示通知
+            if (filteredMeasures.length < allMeasures.length) {
+                showNotification(`找到 ${filteredMeasures.length} 項符合條件的措施`, 'info');
+            }
+        }
+        
+        function clearFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('filter-year').value = '';
+            document.getElementById('filter-department').value = '';
+            document.getElementById('filter-benefit').value = '';
+            
+            filteredMeasures = [...allMeasures];
+            updateStatistics();
+            updateMeasuresList();
+            showNotification('已清除所有篩選條件', 'info');
+        }
+        
+        function showNotification(message, type = 'info') {
+            // 移除現有通知
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            // 創建通知元素
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            
+            // 添加到文檔
+            document.body.appendChild(notification);
+            
+            // 3秒後移除
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+        
+        // 添加鍵盤快捷鍵支持
+        document.getElementById('search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+        
+        // 監聽篩選器變化
+        document.getElementById('filter-year').addEventListener('change', performSearch);
+        document.getElementById('filter-department').addEventListener('change', performSearch);
+        document.getElementById('filter-benefit').addEventListener('change', performSearch);
+    </script>
+</body>
+</html>
